@@ -3,11 +3,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { instituteId: string } }
+  { params }: { params: Promise<{ instituteId: string }> }
 ) {
   try {
+    const { instituteId } = await params;
     const messages = await prisma.chatMessage.findMany({
-      where: { instituteId: params.instituteId },
+      where: { instituteId },
       include: { user: true },
       orderBy: { createdAt: "asc" },
       take: 50,
@@ -21,9 +22,10 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { instituteId: string } }
+  { params }: { params: Promise<{ instituteId: string }> }
 ) {
   try {
+    const { instituteId } = await params;
     const body = await request.json();
     const { content, userId } = body;
 
@@ -31,7 +33,7 @@ export async function POST(
       data: {
         content,
         userId,
-        instituteId: params.instituteId,
+        instituteId,
       },
       include: { user: true },
     });
