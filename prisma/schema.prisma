@@ -3,18 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
 }
 
 model User {
-  id          String   @id @default(cuid())
-  nickname    String   @default("Anonymous")
-  instituteId String?
-  institute   Institute? @relation(fields: [instituteId], references: [id])
-  votes       RatingVote[]
-  messages    ChatMessage[]
-  createdAt   DateTime @default(now())
+  id               String   @id @default(cuid())
+  nickname         String   @default("Anonymous")
+  telegramId       String   @unique
+  telegramUsername String?
+  avatarUrl        String?
+  instituteId      String?
+  institute        Institute? @relation(fields: [instituteId], references: [id])
+  votes            RatingVote[]
+  messages         ChatMessage[]
+  createdAt        DateTime @default(now())
 }
 
 model Institute {
