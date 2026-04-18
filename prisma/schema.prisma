@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  nickname    String   @default("Anonymous")
+  instituteId String?
+  institute   Institute? @relation(fields: [instituteId], references: [id])
+  votes       RatingVote[]
+  messages    ChatMessage[]
+  createdAt   DateTime @default(now())
+}
+
+model Institute {
+  id       String   @id @default(cuid())
+  name     String   @unique // ИЭ, ИМГТ, ИЭУ, ИЭП, ИСТ, ИДО, Магистратура
+  users    User[]
+  messages ChatMessage[]
+}
+
+model Teacher {
+  id              String   @id @default(cuid())
+  name            String
+  department      String
+  difficultyRating Float    @default(0)
+  charismaRating   Float    @default(0)
+  votes           RatingVote[]
+}
+
+model RatingVote {
+  id        String   @id @default(cuid())
+  userId    String
+  teacherId String
+  user      User     @relation(fields: [userId], references: [id])
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  @@unique([userId, teacherId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  content     String
+  userId      String
+  instituteId String
+  user        User     @relation(fields: [userId], references: [id])
+  institute   Institute @relation(fields: [instituteId], references: [id])
+  createdAt   DateTime @default(now())
+}
