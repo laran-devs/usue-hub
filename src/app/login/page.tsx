@@ -69,6 +69,9 @@ export default function LoginPage() {
               <h1 className="text-2xl font-bold text-slate-100 tracking-tight">ACCESS RESTRICTED</h1>
               <p className="text-sm text-slate-500 font-mono">
                 Unauthorized entry to USUE.HUB is strictly prohibited. 
+              </p>
+            </div>
+
             <div className="flex flex-col items-center gap-6 py-4">
               {/* Primary Widget (Proxied) */}
               <div ref={containerRef} className="telegram-widget-container min-h-[40px]" />
