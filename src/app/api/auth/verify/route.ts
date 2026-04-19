@@ -1,59 +1,70 @@
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { createSession, shuffleNickname } from "@/lib/auth";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "secret_underground_key_777");
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const token = searchParams.get("token");
-
-  if (!token) {
-    return NextResponse.redirect(new URL("/login?error=MissingToken", request.url));
-  }
-
+/**
+ * Verifies the 6-digit code sent to the student's email.
+ */
+export async function POST(request: Request) {
   try {
-    // 1. Verify the deep link token
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
-      algorithms: ["HS256"],
-    });
-    
-    const data = payload as { id: string, username: string };
-    const telegramId = data.id;
-    const username = data.username;
+    const { email, token } = await request.json();
 
-    // 2. Standard user registration/login logic
-    let user = await prisma.user.findUnique({
-      where: { telegramId },
-    });
-
-    if (!user) {
-      // First time entry
-      const initialNickname = shuffleNickname(username);
-      user = await prisma.user.create({
-        data: {
-          telegramId,
-          telegramUsername: username,
-          nickname: initialNickname,
-        },
-      });
-      console.log(`Deep Link Registration: ${telegramId} as ${initialNickname}`);
-    } else {
-      // Update username if changed
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { telegramUsername: username }
-      });
+    if (!email || !token) {
+      return NextResponse.json({ error: "GATEWAY_ERROR", message: "Email and token are required." }, { status: 400 });
     }
 
-    // 3. Create session cookie
+    // 1. Check Security Token
+    const storedToken = await prisma.verificationToken.findFirst({
+      where: { email, token },
+    });
+
+    if (!storedToken) {
+      return NextResponse.json(
+        { error: "INVALID_CODE", message: "Verification sequence mismatch." },
+        { status: 400 }
+      );
+    }
+
+    if (storedToken.expiresAt < new Date()) {
+      await prisma.verificationToken.delete({ where: { id: storedToken.id } });
+      return NextResponse.json(
+        { error: "CODE_EXPIRED", message: "Security token has expired. Request a new one." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Finalize Identity
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return NextResponse.json({ error: "IDENTITY_NOT_FOUND", message: "User record missing." }, { status: 404 });
+    }
+
+    // 3. Update User State & Shuffle Anonymous Identity
+    const prefix = email.split("@")[0];
+    const anonymousNickname = shuffleNickname(prefix);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        nickname: anonymousNickname
+      },
+    });
+
+    // 4. Cleanup single-use token
+    await prisma.verificationToken.delete({ where: { id: storedToken.id } });
+
+    // 5. Establish Session
     await createSession(user.id);
 
-    // 4. Final redirect to the hub
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.json({ 
+      success: true, 
+      message: "Access granted. Identity verified and anonymized.",
+      nickname: anonymousNickname 
+    });
+
   } catch (error) {
-    console.error("Deep-link auth failure:", error);
-    return NextResponse.redirect(new URL("/login?error=InvalidOrExpiredToken", request.url));
+    console.error("Verification crash:", error);
+    return NextResponse.json({ error: "INTERNAL_GATEWAY_ERROR", message: "Processing failure." }, { status: 500 });
   }
 }

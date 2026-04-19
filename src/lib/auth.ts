@@ -1,9 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { createHash, createHmac } from "crypto";
+import bcrypt from "bcryptjs";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "secret_underground_key_777");
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 
 /**
  * Shuffles letters of a username to create an anonymous nickname.
@@ -18,23 +17,27 @@ export function shuffleNickname(username: string): string {
 }
 
 /**
- * Verifies Telegram authentication data.
+ * Password Hashing
  */
-export function verifyTelegramAuth(data: any): boolean {
-  if (!BOT_TOKEN) return false;
+export async function hashPassword(password: string) {
+  return await bcrypt.hash(password, 12);
+}
 
-  const { hash, ...checkData } = data;
-  const dataCheckString = Object.keys(checkData)
-    .sort()
-    .map((key) => `${key}=${checkData[key]}`)
-    .join("\n");
+export async function comparePassword(password: string, hash: string) {
+  return await bcrypt.compare(password, hash);
+}
 
-  const secretKey = createHash("sha256").update(BOT_TOKEN).digest();
-  const hmac = createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
+/**
+ * Validation Logic
+ */
+export function validateEmail(email: string): boolean {
+  return email.endsWith("@usue.ru");
+}
 
-  return hmac === hash;
+export function validatePassword(password: string): boolean {
+  // Rule: min 8 chars, 1 number, 1 special char
+  const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+  return passwordRegex.test(password);
 }
 
 /**
