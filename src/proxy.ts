@@ -7,36 +7,13 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "secret_un
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Allow public assets, login page, and api auth
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/api/auth") ||
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname === "/verify" ||
-    pathname.includes(".") // Static files
-  ) {
-    return NextResponse.next();
+  // 1. Temporary redirect for auth pages to maintain "open access" phase
+  if (pathname === "/login" || pathname === "/register") {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 2. Check for session
-  const session = request.cookies.get("auth_session")?.value;
-
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // 3. Verify session
-  try {
-    await jwtVerify(session, JWT_SECRET);
-    return NextResponse.next();
-  } catch (error) {
-    // Session expired or invalid
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.delete("auth_session");
-    return response;
-  }
+  // 2. Allow all other routes (Anonymous access enabled)
+  return NextResponse.next();
 }
 
 export const config = {
