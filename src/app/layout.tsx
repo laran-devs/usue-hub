@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "USUE.HUB | Underground Student Portal",
   description: "Анонимный портал студентов УрГЭУ",
 };
