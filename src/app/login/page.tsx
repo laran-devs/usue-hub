@@ -9,13 +9,18 @@ export default function LoginPage() {
   React.useEffect(() => {
     // Standard Telegram Login Widget script
     const script = document.createElement("script")
-    script.src = "https://telegram.org/js/telegram-widget.js?22"
+    // Use internal proxy to bypass regional blocks on telegram.org
+    script.src = "/api/telegram-script";
     script.setAttribute("data-telegram-login", process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "bot_name")
     script.setAttribute("data-size", "large")
     script.setAttribute("data-radius", "8")
     script.setAttribute("data-auth-url", "/api/auth/telegram")
     script.setAttribute("data-request-access", "write")
     script.async = true
+
+    script.onerror = () => {
+      console.error("Critical: Telegram Gateway Script blocked even via proxy.");
+    };
 
     if (containerRef.current) {
       containerRef.current.appendChild(script)
