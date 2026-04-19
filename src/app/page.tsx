@@ -9,15 +9,18 @@ import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 
 export default function Home() {
+  const [mounted, setMounted] = React.useState(false);
   const [posts, setPosts] = React.useState<any[]>([]);
   const [inputValue, setInputValue] = React.useState("");
   const [session, setSession] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    setMounted(true);
     fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => setSession(data));
+      .then((res) => res.ok ? res.json() : { authenticated: false })
+      .then((data) => setSession(data))
+      .catch(() => setSession({ authenticated: false }));
       
     fetchPosts();
   }, []);
@@ -25,10 +28,12 @@ export default function Home() {
   const fetchPosts = async () => {
     try {
       const res = await fetch("/api/posts");
+      if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       setPosts(data);
     } catch (err) {
       console.error(err);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -109,7 +114,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-600 uppercase font-mono">
                   <Clock className="h-3 w-3" />
-                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: ru })}
+                  {mounted ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: ru }) : "недавно"}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
