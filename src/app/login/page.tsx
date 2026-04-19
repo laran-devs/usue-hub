@@ -69,15 +69,35 @@ export default function LoginPage() {
               <h1 className="text-2xl font-bold text-slate-100 tracking-tight">ACCESS RESTRICTED</h1>
               <p className="text-sm text-slate-500 font-mono">
                 Unauthorized entry to USUE.HUB is strictly prohibited. 
-                Identify yourself via secure Telegram channel to proceed.
-              </p>
-            </div>
+            <div className="flex flex-col items-center gap-6 py-4">
+              {/* Primary Widget (Proxied) */}
+              <div ref={containerRef} className="telegram-widget-container min-h-[40px]" />
+              
+              <div className="flex items-center gap-4 w-full">
+                <div className="h-px bg-blue-900/30 flex-1" />
+                <span className="text-[9px] font-mono text-blue-900/50 tracking-widest">OR SECURE DEEP LINK</span>
+                <div className="h-px bg-blue-900/30 flex-1" />
+              </div>
 
-            <div className="flex flex-col items-center gap-4 py-4 min-h-[100px]">
-              <div ref={containerRef} className="telegram-widget-container" />
-              <p className="text-[10px] text-blue-900/80 font-mono italic">
-                * Your identity will be anonymized upon entry.
-              </p>
+              {/* High-Reliability Fallback Button */}
+              <a 
+                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "usuehub_bot"}?start=login`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-blue-700 hover:bg-blue-600 text-slate-100 font-mono text-[11px] font-bold py-3 px-6 rounded-md flex items-center justify-center gap-2 transition-all shadow-[0_0_25px_-5px_rgba(29,78,216,0.3)] border border-blue-500/30 group active:scale-95"
+              >
+                <Lock className="h-3.5 w-3.5 group-hover:text-blue-300 transition-colors" />
+                ENTER VIA SECURE GATEWAY
+              </a>
+
+              <div className="space-y-1">
+                <p className="text-[10px] text-blue-800 font-mono leading-tight">
+                  * Use Gateway if the widget is blocked by ISP.
+                </p>
+                <p className="text-[10px] text-blue-900/40 font-mono italic">
+                  Identity anonymized upon entry.
+                </p>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-blue-900/10">
