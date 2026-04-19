@@ -5,7 +5,7 @@ import { ShieldCheck, Terminal, ArrowRight, Loader2, MailCheck, ShieldAlert } fr
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
-export default function VerifyPage() {
+function VerifyContent() {
   const [code, setCode] = React.useState("")
   const [error, setError] = React.useState("")
   const [loading, setLoading] = React.useState(false)
@@ -140,5 +140,17 @@ export default function VerifyPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+      </div>
+    }>
+      <VerifyContent />
+    </React.Suspense>
   )
 }
