@@ -14,6 +14,13 @@ export default function ChatsPage() {
   const [messages, setMessages] = React.useState<any[]>([])
   const [inputValue, setInputValue] = React.useState("")
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const [session, setSession] = React.useState<any>(null)
+
+  React.useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => setSession(data))
+  }, [])
 
   React.useEffect(() => {
     fetch("/api/institutes")
@@ -59,11 +66,11 @@ export default function ChatsPage() {
   }, [messages])
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !selectedInst) return
+    if (!inputValue.trim() || !selectedInst || !session?.user?.id) return
 
     const msgData = {
       content: inputValue,
-      userId: "anonymous", // Logical placeholder
+      userId: session.user.id,
       instituteId: selectedInst.id,
     }
 
@@ -74,6 +81,7 @@ export default function ChatsPage() {
     // Save to DB
     await fetch(`/api/chats/${selectedInst.id}`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(msgData),
     })
 

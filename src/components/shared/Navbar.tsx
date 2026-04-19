@@ -38,28 +38,42 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 pr-2 border-r border-blue-900/10">
               <span className="text-[10px] text-slate-500 font-mono text-right leading-tight">
-                Node: {session.user.id.slice(0, 3)}<br/>
-                Auth: <span className="text-blue-400 font-bold">{session.user.nickname}</span>
+                {session.isGuest ? "Mode:" : `Node: ${session.user.id.slice(0, 3)}`}<br/>
+                {session.isGuest ? (
+                  <span className="text-green-500 font-bold uppercase tracking-tighter">ANONYMOUS</span>
+                ) : (
+                  <>Auth: <span className="text-blue-400 font-bold">{session.user.nickname}</span></>
+                )}
               </span>
-              <Avatar className="h-8 w-8 rounded border border-blue-700/50">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-bold text-blue-400 font-mono">{session.user.nickname}</span>
+                {session.isGuest && <span className="text-[8px] text-slate-600 uppercase font-mono">Guest Session</span>}
+              </div>
+              <Avatar className={`h-8 w-8 rounded border ${session.isGuest ? "border-green-700/50" : "border-blue-700/50"}`}>
                 <AvatarImage src={session.user.avatarUrl} />
-                <AvatarFallback className="bg-blue-900/20 text-blue-400">
+                <AvatarFallback className={`${session.isGuest ? "bg-green-900/20 text-green-400" : "bg-blue-900/20 text-blue-400"}`}>
                   <ShieldCheck className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
             </div>
-            <button className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-red-950/20 text-slate-500 hover:text-red-500 transition-colors">
-              <LogOut className="h-4 w-4" />
-            </button>
+            {!session.isGuest && (
+              <button 
+                onClick={handleLogout}
+                className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-red-950/20 text-slate-500 hover:text-red-500 transition-colors"
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-slate-500 font-mono text-right leading-tight">
               Node: ???<br/>
-              Auth: UNAUTHORIZED
+              Auth: INITIALIZING...
             </span>
-            <div className="h-8 w-8 rounded bg-red-900/20 border border-red-700/50 flex items-center justify-center">
-              <ShieldAlert className="h-4 w-4 text-red-500" />
+            <div className="h-8 w-8 rounded bg-slate-900/20 border border-slate-700/50 flex items-center justify-center animate-pulse">
+              <ShieldAlert className="h-4 w-4 text-slate-500" />
             </div>
           </div>
         )}

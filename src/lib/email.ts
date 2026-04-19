@@ -1,19 +1,23 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || key === "re_...") return null;
+  return new Resend(key);
+};
 
 /**
  * Sends a verification code via email.
- * If RESEND_API_KEY is missing or invalid, it falls back to console logging for development.
  */
 export async function sendVerificationEmail(email: string, token: string) {
   try {
-    console.log(`[AUTH] Attempting to send verification code to: ${email}`);
+    console.log(`[AUTH] Dispatching verification code to: ${email}`);
     
-    // In many development scenarios, we use console logging as a fallback
-    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_...") {
+    const resend = getResend();
+
+    if (!resend) {
       console.log(`\n***************************************************`);
-      console.log(`[RESEND MOCK] Verification Code for ${email}: ${token}`);
+      console.log(`[DEVELOPMENT MODE] CODE FOR ${email}: ${token}`);
       console.log(`***************************************************\n`);
       return true;
     }

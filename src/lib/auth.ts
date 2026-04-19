@@ -5,6 +5,28 @@ import bcrypt from "bcryptjs";
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "secret_underground_key_777");
 
 /**
+ * Generates a random fun nickname for guest users.
+ */
+export function generateRandomNickname(): string {
+  const adjectives = [
+    "Скрытный", "Анонимный", "Веселый", "Мудрый", "Быстрый", 
+    "Сонный", "Голодный", "Дерзкий", "Умный", "Странный",
+    "Техногенный", "Цифровой", "Подпольный", "Крутой", "Тихий"
+  ];
+  const nouns = [
+    "Студент", "Финансист", "Менеджер", "Хакер", "Прогер",
+    "Экономист", "Юрист", "Дизайнер", "Профессор", "Ректор",
+    "Староста", "Аватар", "Бот", "Киборг", "Призрак"
+  ];
+  
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(Math.random() * 999);
+  
+  return `${adj} ${noun} #${num}`;
+}
+
+/**
  * Shuffles letters of a username to create an anonymous nickname.
  */
 export function shuffleNickname(username: string): string {
